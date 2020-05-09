@@ -1,10 +1,10 @@
 export class Comment {
   constructor(
-    checklistID : string,
-    comment : string,
-    sprintID: string,
+    checklist_id: string,
+    comment: string,
+    sprint_id: string,
     status: string
-  ){}
+  ) {}
 }
 
 

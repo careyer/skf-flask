@@ -1,18 +1,24 @@
-
 from skf.database import db
 
+class ProjectSprint(db.Model):
+    
+    __tablename__ = "project_sprints"
 
-class project_sprints(db.Model):
-    sprintID = db.Column(db.Integer, primary_key=True)
-    sprintName = db.Column(db.Text)
-    sprintDesc = db.Column(db.Text)
-    groupID = db.Column(db.Integer)
-    projectID = db.Column(db.Integer)
+    sprint_id = db.Column(db.Integer, primary_key=True)
 
+    name = db.Column(db.Text)
+    description = db.Column(db.Text)
 
-    def __init__(self, sprintName, sprintDesc, groupID, projectID):
-        self.sprintName = sprintName
-        self.sprintDesc = sprintDesc
-        self.groupID = groupID
-        self.projectID = projectID
+    group_id = db.Column(db.Integer, db.ForeignKey("groups.id"))
+    group = db.relationship('Group', backref=db.backref("sprints"))
+
+    project_id = db.Column(db.Integer, db.ForeignKey("projects.id"))
+    project = db.relationship('Project', backref=db.backref("sprints"))
+
+    checklist_type_id = db.Column(db.Integer, db.ForeignKey("checklist_types.id"))
+    checklist_type = db.relationship('ChecklistType', backref=db.backref("sprints"))
+
+    def __init__(self, name, description):
+        self.name = name
+        self.description = description
  

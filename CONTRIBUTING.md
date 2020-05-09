@@ -19,12 +19,13 @@ Again thank you for your help, you rock!
 3. export FLASK_APP=skf/app.py
 4. export PYTHONPATH=.:$PYTHONPATH
 5. export FLASK_DEBUG=1
-6. python3.6 skf/app.py
-7. Run the manual test first to verify if everything is good
+6. export SKF_JWT_SECRET='True'
+7. python3.6 skf/app.py
+8. Run the manual test first to verify if everything is good
 ``` 
 coverage run tests/run.py test
 ``` 
-7. Create your changes and write a unit test, commit and open a PR from your fork to the master repo. All CI test must pass before we accept pull requests.
+9. Create your changes and write a unit test, commit and open a PR from your fork to the master repo. All CI test must pass before we accept pull requests.
 
 ## <a name="development-angular"></a>Development SKF-ANGULAR
 
@@ -49,6 +50,7 @@ Go to the SKF root dir and run:
 export FLASK_APP=skf/app.py
 export PYTHONPATH=.:$PYTHONPATH
 export FLASK_DEBUG=1
+export SKF_JWT_SECRET='True'
 coverage run tests/run.py test
 ```
 
@@ -56,4 +58,45 @@ TESTING SKF-ANGULAR<br>
 Go to the Angular dir in the SKF root dir and run:
 ```
 npm test
+```
+
+END 2 END TESTING SELENIUM<br>
+
+Testing SKF App End to End with Selenium<br>
+We need to start the SKF API first<br>
+Go to the SKF root dir and run:
+```
+export FLASK_APP=skf/app.py
+export PYTHONPATH=.:$PYTHONPATH
+export FLASK_DEBUG=1
+export SKF_JWT_SECRET='True'
+python3 skf/app.py
+```
+
+Now we need to start the SKF Angular<br>
+Go to the Angular dir in the SKF root dir and run:
+```
+npm start
+```
+
+First we need to download the ChromeDriver for our OS<br>
+Always pick the last version available:<br>
+http://chromedriver.chromium.org/downloads<br>
+Then download your OS driver:<br>
+https://chromedriver.storage.googleapis.com/index.html?path=73.0.3683.20/<br>
+Unzip it and place it in a good location<br>
+Now add it to the Path (Windows):<br>
+```
+set PATH=%PATH%;C:\WHERE_I_PUT_THEDRIVER
+```
+Or for Mac/Linux add it to the Path:<br>
+```
+export PATH=$PATH:/usr/local/bin/WHERE_I_PUT_THEDRIVER
+```
+Go to the SKF root dir and run:
+```
+export FLASK_APP=skf/app.py
+export PYTHONPATH=.:$PYTHONPATH
+export FLASK_DEBUG=1
+python3 tests/selenium/run.py
 ```

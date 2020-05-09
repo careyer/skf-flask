@@ -20,7 +20,7 @@ login = api.model('login', {
 
 create = api.model('create', {
     'email': fields.String(required=True, description='Email of the user'),
-    'privilege': fields.Integer(required=True, description='Role of the user privilege: 2, 3, 4'),
+    'privilege_id': fields.Integer(required=True, description='Role of the user privilege: 2, 3, 4'),
 })
 
 manage = api.model('manage', {
@@ -28,7 +28,7 @@ manage = api.model('manage', {
 })
 
 created = api.model('created', {
-    'userID': fields.Integer(required=True, description='The unique identifier of the user'),
+    'id': fields.Integer(required=True, description='The unique identifier of the user'),
     'email': fields.String(required=True, description='Email of the user'),
     'accessToken': fields.String(required=True, description='Generated accessToken of the user'),
 })
@@ -39,11 +39,11 @@ token_auth = api.model('Response Authorization token', {
 })
  
 user_list = api.model('user_list', {
-    'userName': fields.String(required=True, description='Username of the user'),
+    'username': fields.String(required=True, description='Username of the user'),
     'email': fields.String(required=True, description='Email of the user'),
     'access': fields.String(required=True, description='User has access to application'),
     'activated': fields.String(required=True, description='User is activated'),
-    'userID': fields.Integer(required=True, description='The unique identifier of the user'),
+    'id': fields.Integer(required=True, description='The unique identifier of the user'),
 })
 
 user_items = api.inherit('List of user items', {
@@ -52,7 +52,7 @@ user_items = api.inherit('List of user items', {
 
 privilege_list = api.model('privilege_list', {
     'privilege': fields.String(required=True, description='The list of privileges'),
-    'privilegeID': fields.Integer(required=True, description='The unique identifier of the privilege'),
+    'id': fields.Integer(required=True, description='The unique identifier of the privilege'),
 })
 
 privilege_items = api.inherit('List of privilege items', {

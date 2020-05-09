@@ -1,20 +1,16 @@
 # OWASP Security Knowledge Framework
-[![SKF Logo](https://www.securityknowledgeframework.org/img/banner-wiki-owasp.jpg)](https://www.securityknowledgeframework.org/)
+[![SKF Logo](https://www.securityknowledgeframework.org/img/banner-wiki-owasp.jpg)](https://www.securityknowledgeframework.org/) 
 
 <br>Project status details:<br>
 [![Build Travis CI Master](https://travis-ci.org/blabla1337/skf-flask.svg?branch=master)](https://travis-ci.org/blabla1337/skf-flask)
 [![Join the chat at https://gitter.im/Security-Knowledge-Framework/Lobby](https://badges.gitter.im/Security-Knowledge-Framework/Lobby.svg)](https://gitter.im/Security-Knowledge-Framework/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://owasp.slack.com/messages/C0F7L9X6V](https://img.shields.io/badge/chat-on%20slack-blueviolet)](https://owasp.slack.com/messages/C0F7L9X6V)
+[![OWASP Flagship](https://img.shields.io/badge/owasp-flagship%20project-orange.svg)](https://www.owasp.org/index.php/OWASP_Security_Knowledge_Framework)
 
-
-<br>Quality testing SKF-Angular:<br>
-[![codecov](https://codecov.io/gh/blabla1337/skf-flask/branch/master/graph/badge.svg)](https://codecov.io/gh/blabla1337/skf-flask)
+<br>Quality testing:<br>
 [![Known Vulnerabilities](https://snyk.io/test/github/blabla1337/skf-flask/badge.svg)](https://snyk.io/test/github/blabla1337/skf-flask)
-
-
-<br>Quality testing SKF-API:<br>
 [![Coverage Status](https://coveralls.io/repos/blabla1337/skf-flask/badge.svg?branch=master)](https://coveralls.io/repos/blabla1337/skf-flask/badge.svg?branch=master)
 [![Black Duck Security Risk](https://copilot.blackducksoftware.com/github/repos/blabla1337/skf-flask/branches/master/badge-risk.svg)](https://copilot.blackducksoftware.com/github/repos/blabla1337/skf-flask/branches/master)
-[![Code Quality Status](https://scrutinizer-ci.com/g/blabla1337/skf-flask/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/blabla1337/skf-flask/)
 [![Requirements Status](https://requires.io/github/blabla1337/skf-flask/requirements.svg?branch=master)](https://requires.io/github/blabla1337/skf-flask/requirements/?branch=master)
 
 Security Knowledge Framework is an expert system application that uses the OWASP Application Security Verification Standard with detailed code examples (secure coding principles) to help developers in pre-development and post-development phases and create applications that are secure by design.
@@ -45,7 +41,10 @@ The second stage is validating if the developer properly implemented different s
 
 ### [Local on premise installation how to](https://github.com/blabla1337/skf-flask/tree/master/installations/local)  
 ### [Docker local installation how to](https://github.com/blabla1337/skf-flask/tree/master/installations/docker)  
+### [Kubernetes installation how to](https://github.com/blabla1337/skf-flask/tree/master/installations/Kubernetes)  
 ### [Azure installation how to](https://github.com/blabla1337/skf-flask/tree/master/installations/azure-deployment)  
+
+### [SKF Chatbot installation how to](https://github.com/blabla1337/skf-bot)  
 
 ## <a name="updating-db"></a>Updating Database
 
@@ -75,14 +74,6 @@ For more detailed information such as setting up an admin account and user guide
 
 [Readme: extended documentation](https://skf.readme.io/)  
 
-## <a name="scrum-board"></a>Scrum Board
-
-### Waffle.io:
-
-https://waffle.io/blabla1337/skf-flask
-
-[![Throughput Graph](https://graphs.waffle.io/blabla1337/skf-flask/throughput.svg)](https://waffle.io/blabla1337/skf-flask/metrics)
-
 ## <a name="CI-Pipeline"></a>CI-Pipeline
 
 ### Travis-ci.org:
@@ -105,13 +96,6 @@ Code coverage done right. Highly integrated with GitHub, Bitbucket and GitLab.
 SKF codecov details:
 ```
 https://codecov.io/gh/blabla1337/skf-flask
-
-### Scrutinizer-ci.com:
-```
-Why to use Scrutinizer. Improve code quality and find bugs before they hit production with our continuous inspection platform. Improve Code Quality.
-SKF Scrutinizer details:
-```
-https://scrutinizer-ci.com/g/blabla1337/skf-flask/
 
 ### Bithound.io NPM packages:
 ```
@@ -151,7 +135,7 @@ Creates a nice badge for your website SSL/TLS security settings based on the Qua
 
 
 ## <a name="license"></a>License
-    Copyright (C) 2019  Glenn ten Cate, Riccardo ten Cate
+    Copyright (C) 2020  Glenn ten Cate, Riccardo ten Cate
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -172,7 +156,8 @@ Creates a nice badge for your website SSL/TLS security settings based on the Qua
 Licensed under the [creative commons](http://creativecommons.org/licenses/by-nd/3.0/nl/) license
 
 ## <a name="contributors"></a>Contributors
-
+- Lucas Luitjes
+- [Mattijs van Ommeren](https://twitter.com/alcyonsecurity)
 - [Glenn ten Cate](https://twitter.com/FooBar_testing_)
 - [Riccardo ten Cate](https://twitter.com/RiieCco)
 - [Alexander Kaasjager](https://twitter.com/akaasjager)
@@ -205,6 +190,15 @@ Licensed under the [creative commons](http://creativecommons.org/licenses/by-nd/
 - Rafał Fronczyk
 - Chang Xu (Neo)
 - Martin Marsicano
-- Priyanka Jaine
+- [Priyanka Jain](https://www.linkedin.com/in/priyanka997/)
 - Chandrasekar Karthickrajan
 - Leena Bhegade
+- Balazs Hambalko
+- Rudy Truyens
+- Giulio Comi
+- Aniket Surwade
+- Thiago Luiz Dimbarre
+- Harshant Sharma
+- Semen Rozhkov
+- Mehtab Zafar 
+- Daniel Spilsbury

@@ -1,94 +1,99 @@
 import os
-from skf import settings
+import sys 
+import datetime
+from flask import Flask, current_app
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
 from shutil import copyfile
-from flask import Flask
-from sqlite3 import dbapi2 as sqlite3
+from skf.database import db
+from skf.database.users import User
+from skf.database.groups import Group
+from skf.database.privileges import Privilege
+from skf.database.kb_items import KBItem
+from skf.database.code_items import CodeItem
+from skf.database.checklist_types import ChecklistType
+from skf.database.checklist_category import ChecklistCategory
+from skf.initial_data import load_initial_data
 
 
-app = Flask(__name__)
-
-def connect_db():
-    """Connects to the specific database."""
-    rv = sqlite3.connect(os.path.join(app.root_path, settings.DATABASE))
-    rv.row_factory = sqlite3.Row
-    return rv
-
-
-def init_db():
-    """Initializes the database."""
+def clear_db():
+    print("Clearing the database")
     try:
-        os.remove(os.path.join(app.root_path, settings.DATABASE))
-        open(os.path.join(app.root_path, 'db.sqlite_schema'), 'a')
-        os.remove(os.path.join(app.root_path, 'db.sqlite_schema'))
-        copyfile(os.path.join(app.root_path, "schema.sql"), os.path.join(app.root_path, 'db.sqlite_schema'))
-        init_md_checklists()
-        init_md_code_examples()
-        init_md_knowledge_base()
-        db = connect_db()
-        with app.open_resource(os.path.join(app.root_path, 'db.sqlite_schema'), mode='r') as f:
-            db.cursor().executescript(f.read())
-        db.commit()
-        return True
+        db.drop_all()
+        db.session.commit()
     except:
-        return False
+        print("Error occurred clearing the database")
+        db.session.rollback()
+        raise
 
+
+def init_db(testing=False):
+    """Initializes the database.""" 
+    try:
+        print("Initializing the database")
+        db.create_all()
+        prerequisits()
+        init_md_knowledge_base()
+        init_md_code_examples()
+        load_initial_data()
+    except:
+        db.session.remove()
+        print("Database is already existsing, nothing to do")
+
+
+def clean_db(testing=False):
+    """Clean and Initializes the database.""" 
+    clear_db()
+    print("Clean and Initializing the database")
+    db.create_all()
+    prerequisits()
+    init_md_code_examples()
+    init_md_knowledge_base()
+    load_initial_data()
+    db.session.commit()
 
 def update_db():
     """Update the database."""
-    try:
-        os.remove(os.path.join(app.root_path, 'db.sqlite_schema'))
-        db = connect_db()
-        db.session.delete("TRUNCATE TABLE kb_items")
-        db.session.delete("TRUNCATE TABLE code_items")
-        db.session.delete("TRUNCATE TABLE checklists")
-        db.session.commit()
-
-        init_md_checklists()
-        init_md_code_examples()
-        init_md_knowledge_base()
-
-        with app.open_resource(os.path.join(app.root_path, 'db.sqlite_schema'), mode='r') as f:
-            db.cursor().executescript(f.read())
-        db.commit()
-        return True
-    except:
-        return False
-
-
-def get_db():
-    """Opens a new database connection if there is none yet for the current application context."""
-    if not hasattr(g, settings.DATABASE):
-        g.sqlite_db = connect_db()
-    return g.sqlite_db
-
+    KBItem.query.delete()
+    CodeItem.query.delete()
+    db.session.commit()
+    init_md_code_examples()
+    init_md_knowledge_base()
 
 def init_md_knowledge_base():
     """Converts markdown knowledge-base items to DB."""
-    kb_dir = os.path.join(app.root_path, 'markdown/knowledge_base')
+    kb_dir = os.path.join(current_app.root_path, 'markdown/knowledge_base/web')
     try:
         for filename in os.listdir(kb_dir):
             if filename.endswith(".md"):
                 name_raw = filename.split("-")
-                kbID = name_raw[0].replace("_", " ")
+                kb_id = name_raw[0].replace("_", " ")
                 title = name_raw[3].replace("_", " ")
                 file = os.path.join(kb_dir, filename)
                 data = open(file, 'r')
                 file_content = data.read()
                 data.close()
-                content_escaped = file_content.translate(str.maketrans({"'":  r"''", "-":  r"", "#":  r""}))
-                query = "INSERT OR REPLACE INTO kb_items (kbID, content, title) VALUES ('"+kbID+"','"+content_escaped+"', '"+title+"'); \n"
-                with open(os.path.join(app.root_path, 'db.sqlite_schema'), 'a') as myfile:
-                        myfile.write(query)
+                content = file_content.translate(str.maketrans({"'":  r"''", "-":  r"", "#":  r""}))
+                try:
+                    item = KBItem(title, content, kb_id)
+                    if (kb_id == "1"):
+                        item.checklist_category_id = 0
+                    else:
+                        item.checklist_category_id = 1
+                    db.session.add(item)
+                    db.session.commit()
+                except IntegrityError as e:
+                    raise
         print('Initialized the markdown knowledge-base.')
         return True
     except:
-        return False
+        raise
 
 
 def init_md_code_examples():
     """Converts markdown code-example items to DB."""
-    kb_dir = os.path.join(app.root_path, 'markdown/code_examples/')
-    code_langs = ['asp', 'java', 'php', 'flask', 'django', 'go', 'ruby']
+    kb_dir = os.path.join(current_app.root_path, 'markdown/code_examples/web/')
+    code_langs = ['asp', 'java', 'php', 'flask', 'django', 'go', 'ruby', 'nodejs-express']
     try:
         for lang in code_langs:
             for filename in os.listdir(kb_dir+lang):
@@ -100,92 +105,28 @@ def init_md_code_examples():
                     file_content = data.read()
                     data.close()
                     content_escaped = file_content.translate(str.maketrans({"'":  r"''", "-":  r"", "#":  r""}))
-                    query = "INSERT OR REPLACE INTO code_items (content, title, code_lang) VALUES ('"+content_escaped+"', '"+title+"', '"+lang+"'); \n"
-                    with open(os.path.join(app.root_path, 'db.sqlite_schema'), 'a') as myfile:
-                            myfile.write(query)
-        print('Initialized the markdown code-example.')
+                    try:
+                        item = CodeItem(content_escaped, title, lang)
+                        item.checklist_category_id = 1
+                        db.session.add(item)
+                        db.session.commit()
+                    except IntegrityError as e:
+                        print(e)
+                        pass
+        print('Initialized the markdown code-examples.')
         return True
     except:
-        return False
+        raise
 
 
-def init_md_checklists():
-    """Converts markdown checklists items to DB."""
-    kb_dir = os.path.join(app.root_path, 'markdown/checklists/')
+def prerequisits():
     try:
-        #checklists = ['asvs', 'pcidss', 'custom']
-        checklists = ['asvs', 'custom', 'masvs']
-        for checklist in checklists:
-            if checklist == "asvs":
-                for filename in os.listdir(kb_dir+checklist):
-                    if filename.endswith(".md"):
-                        name_raw = filename.split("-")
-                        level = name_raw[4].replace("_", " ")
-                        kbid_raw = name_raw[6].split(".")
-                        kb_id = kbid_raw[0]
-                        if level == "0":
-                            # For the ASVS categories
-                            file = os.path.join(kb_dir+checklist, filename)
-                            data = open(file, 'r')
-                            file_content = data.read()
-                            data.close()
-                            checklistID_raw = file_content.split(":")
-                            checklistID = checklistID_raw[0]
-                            checklistID = checklistID.lstrip('V')
-                            checklistID = checklistID+".0"
-                        else :
-                            # For the ASVS items
-                            file = os.path.join(kb_dir+checklist, filename)
-                            data = open(file, 'r')
-                            file_content = data.read()
-                            data.close()
-                            checklistID_raw = file_content.split(" ")
-                            checklistID = checklistID_raw[0]
-                        file = os.path.join(kb_dir+checklist, filename)
-                        data = open(file, 'r')
-                        file_content = data.read()
-                        data.close()
-                        content = file_content.split(' ', 1)[1]
-                        content_escaped = content.translate(str.maketrans({"'":  r"''", "-":  r"", "#":  r""}))
-                        query = "INSERT OR REPLACE INTO checklists (checklistID, content, level, kbID) VALUES ('"+checklistID+"', '"+content_escaped+"', '"+level+"', '"+kb_id+"'); \n"
-                        with open(os.path.join(app.root_path, 'db.sqlite_schema'), 'a') as myfile:
-                            myfile.write(query)
-            if checklist == 'masvs':
-                for filename in os.listdir(kb_dir+checklist):
-                    if filename.endswith(".md"):
-                        name_raw = filename.split("-")
-                        level = name_raw[4].replace("_", " ")
-                        kbid_raw = name_raw[6].split(".")
-                        kb_id = kbid_raw[0]
-                        if level == "0":
-                            # For the MASVS categories
-                            file = os.path.join(kb_dir+checklist, filename)
-                            data = open(file, 'r')
-                            file_content = data.read()
-                            data.close()
-                            checklistID_raw = file_content.split(":")
-                            checklistID = checklistID_raw[0]
-                            checklistID = checklistID.lstrip('V')
-                            checklistID = checklistID+".0"
-                        else :
-                            # For the MASVS items
-                            file = os.path.join(kb_dir+checklist, filename)
-                            data = open(file, 'r')
-                            file_content = data.read()
-                            data.close()
-                            checklistID_raw = file_content.split(" ")
-                            checklistID = checklistID_raw[0]
-                        file = os.path.join(kb_dir+checklist, filename)
-                        data = open(file, 'r')
-                        file_content = data.read()
-                        data.close()
-                        content = file_content.split(' ', 1)[1]
-                        content_escaped = content.translate(str.maketrans({"'":  r"''", "-":  r"", "#":  r""}))
-                        query = "INSERT OR REPLACE INTO checklists (checklistID, content, level, kbID) VALUES ('"+checklistID+"', '"+content_escaped+"', '"+level+"', '"+kb_id+"'); \n"
-                        with open(os.path.join(app.root_path, 'db.sqlite_schema'), 'a') as myfile:
-                                myfile.write(query)
-        print('Initialized the markdown checklists.')
+        category = ChecklistCategory("Web applications", "category for web collection")
+        db.session.add(category)
+        db.session.commit()
+        category = ChecklistCategory("Mobile applications", "category for mobile collection")
+        db.session.add(category)
+        db.session.commit()
         return True
-    except Exception as e:
-        print('Exception in file db_tools, method init_md_checklists: ' + e)
-        return False
+    except:
+        raise

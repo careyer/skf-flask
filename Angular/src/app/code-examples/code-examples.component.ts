@@ -1,49 +1,117 @@
-import { Component, OnInit, DoCheck, ElementRef } from '@angular/core';
+import { Component, OnInit, ElementRef } from '@angular/core';
 import { CodeExamplesService } from '../services/code-examples.service'
-import { StartsWithPipe } from '../pipes/starts-with.pipe'
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CodeExample } from '../models/code-example'
-import { HighlightJsService } from 'angular2-highlight-js'; //in live this would be the node_modules path
-import { Observable } from 'rxjs/Rx';
+import { HighlightJsService } from 'angular2-highlight-js'; // in live this would be the node_modules path
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { CategoryService } from '../services/category.service';
+import { Category } from '../models/category';
+
 
 declare var hljs: any;
 
 @Component({
   selector: 'app-code-examples',
   templateUrl: './code-examples.component.html',
-  providers: [CodeExamplesService, HighlightJsService]
+  providers: [CodeExamplesService, CategoryService, HighlightJsService]
 })
 
-export class CodeExamplesComponent implements OnInit, DoCheck {
+export class CodeExamplesComponent implements OnInit
+{
 
   public lang: string;
-  public codeExamples: CodeExample[];
-  public error: string;
+  public codeExamples: CodeExample[] = [];
   public hljs;
   public queryString;
-  
-  constructor(private code: CodeExamplesService, private highlightJsService: HighlightJsService, private el: ElementRef) {
-    this.lang = localStorage.getItem("code_lang")
+  public codeLangs;
+  codeForm: FormGroup;
+  public isSubmitted: boolean;
+  public delete: string;
+  public category_id: number;
+  public categories: Category[];
+
+  constructor(private codeService: CodeExamplesService, private categoryService: CategoryService, private highlightJsService: HighlightJsService, private el: ElementRef, private modalService: NgbModal, private formBuilder: FormBuilder)
+  {
+    this.lang = localStorage.getItem('code_lang')
   }
 
-  ngOnInit() {
-    this.code.getCode(localStorage.getItem("code_lang"))
-      .subscribe(examples => {
-        this.codeExamples = examples
-      },
-      err => this.error = "There was an error catching code examples.")
+  get formControls() { return this.codeForm.controls; }
+
+  ngOnInit()
+  {
+    this.codeForm = this.formBuilder.group({
+      title: ['', Validators.required],
+      content: ['', Validators.required],
+      code_lang: ['', Validators.required]
+    })
+    this.categoryList();
   }
 
-  ngDoCheck() {
-    if (this.lang != localStorage.getItem("code_lang")) {
-      this.lang = localStorage.getItem("code_lang")
-      this.code.getCode(localStorage.getItem("code_lang"))
-        .subscribe(examples => { this.codeExamples = examples },
-        err => this.error = "There was an error catching code examples.")
+  storeCodeExample(category_id: number)
+  {
+    this.isSubmitted = true;
+    if (this.codeForm.invalid) {
+      return;
     }
-    this.lang = localStorage.getItem("code_lang")
+    this.codeService.newCodeExample(this.category_id, this.codeForm.value)
+      .subscribe(
+        () => this.getCodeExamples(this.category_id)
+      );
   }
 
-  highlight() {
+  getCodeExamples(category_id: number)
+  {
+    this.codeService.getCode(this.category_id)
+      .subscribe(examples =>
+      {
+        this.codeExamples = examples;
+        let codeLangSet = new Set();
+        this.codeExamples.map(item => codeLangSet.add(item[`code_lang`]));
+        this.codeLangs = Array.from(codeLangSet);
+      },
+        () => console.log('There was an error catching code examples.'))
+  }
+
+  deleter(id: number)
+  {
+    if (this.delete == 'DELETE') {
+      this.codeService.deleteCodeExample(id).subscribe(x =>
+        // Get the new project list on delete
+        this.getCodeExamples(this.category_id))
+    }
+  }
+
+  categoryList()
+  {
+    this.categoryService
+      .getCategories()
+      .subscribe(
+        categories =>
+        {
+          this.categories = categories;
+        },
+        err => console.log('Getting the projects failed, contact an administrator! '));
+  }
+
+  selectChecklistsFromCategory()
+  {
+    localStorage.setItem("category_id", this.category_id.toString());
+    this.getCodeExamples(this.category_id);
+  }
+
+
+  addCodeModal(content)
+  {
+    this.modalService.open(content, { size: 'lg' }).result
+  }
+
+  deleteCodeModal(content)
+  {
+    this.modalService.open(content, { size: 'lg' }).result
+  }
+
+  highlight()
+  {
     this.highlightJsService.highlight(this.el.nativeElement.querySelector('#changeme'));
   }
 }

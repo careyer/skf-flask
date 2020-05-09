@@ -1,26 +1,20 @@
-
 from skf.database import db
 
+class Project(db.Model):
+    
+    __tablename__ = 'projects'
 
-class projects(db.Model):
-    projectID = db.Column(db.Integer, primary_key=True)
-    userID = db.Column(db.Integer)
-    groupID = db.Column(db.Integer)
-    projectName = db.Column(db.Text)
-    projectVersion = db.Column(db.Text)
-    projectDesc = db.Column(db.Text)
-    ownerID = db.Column(db.Integer)
-    timestamp = db.Column(db.Text)
-    level = db.Column(db.Integer)
+    id = db.Column(db.Integer, primary_key=True, unique=True, nullable=False)
+    name = db.Column(db.Text, nullable=False)
+    version = db.Column(db.Text, nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.Text, nullable=False)
 
 
-    def __init__(self, userID, groupID, projectName, projectVersion, projectDesc, ownerID, timestamp, level):
-        self.userID = userID
-        self.groupID = groupID
-        self.projectName = projectName
-        self.projectVersion = projectVersion
-        self.projectDesc = projectDesc
-        self.ownerID = ownerID
+    def __init__(self, name, version, description, timestamp):
+        self.name = name
+        self.version = version
+        self.description = description
         self.timestamp = timestamp
-        self.level = level
+
 

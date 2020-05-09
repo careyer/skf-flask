@@ -3,13 +3,14 @@
 export FLASK_APP=skf/app.py
 export PYTHONPATH=.:$PYTHONPATH
 export FLASK_DEBUG=1
+export SKF_JWT_SECRET='True'
 
 while :
 do
 	case "$(ps x |grep -v grep |grep -c "Python skf")" in
 
 	0)  echo "Restarting skf:"
-	    python3.6 skf/app.py 
+	    python3 skf/app.py 
 	    ;;
 	2)  echo "SKF already running"
 	    ;;

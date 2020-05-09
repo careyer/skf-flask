@@ -4,6 +4,18 @@ from skf import settings
 
 app = Flask(__name__)
 
+
+def clean():
+	try:
+		os.remove(os.path.join(app.root_path,"../datasets/code_data.json"))
+		os.remove(os.path.join(app.root_path,"../datasets/code_title.txt"))
+		os.remove(os.path.join(app.root_path,"../datasets/data.json"))
+		os.remove(os.path.join(app.root_path,"../datasets/desc_solution.json"))
+		os.remove(os.path.join(app.root_path,"../datasets/entity_title.txt"))
+		os.remove(os.path.join(app.root_path,"../datasets/intent_data.csv"))
+	except Exception as e:
+		pass
+
 def extract_from_api():
 	r_kb = requests.get(settings.SKF_API_URL+"kb/items", verify = False)
 	r_code = requests.get(settings.SKF_API_URL+"code/items", verify =False)
@@ -23,7 +35,7 @@ def desc_sol_data():
 	a=data['items']
 	for i,value in enumerate(a):
 		file_des_sol.write("{\n")
-		file_des_sol.write('"kbId": '+str(a[i]['kbID'])+",\n")
+		file_des_sol.write('"kb_id": '+str(a[i]['kb_id'])+",\n")
 		file_des_sol.write('"title": "'+ a[i]['title']+'",\n')
 		y=a[i]['content']
 		y=y.replace("\n\n","")

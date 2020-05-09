@@ -7,7 +7,8 @@ export class User {
   access?: string,
   active?: string,
   repassword?: string,
-  userID?: number
-  ){}
+  user_id?: number,
+  privilege_id?: number,
+  ) {}
 }
 

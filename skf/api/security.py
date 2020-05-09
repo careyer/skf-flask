@@ -4,7 +4,7 @@ from skf import settings
 from flask import request, abort
 from skf.api.restplus import api
 from skf.database import db
-from skf.database.logs import logs
+from skf.database.logs import Log
 
 
 def security_headers():
@@ -27,66 +27,62 @@ def log(message, threat, status):
         if request.headers.get('Authorization'):
             token = request.headers.get('Authorization').split()[0]
             checkClaims = jwt.decode(token, settings.JWT_SECRET, algorithms='HS256')
-            userID = checkClaims['UserId']
+            user_id = checkClaims['UserId']
         else:
-            userID = "0"
-        event = logs(dateLog, dateTime, threat, ip, userID, status, message)
-        db.session.add(event)
-        db.session.commit()
+            user_id = "0"
+            event = Log(dateLog, dateTime, threat, ip, user_id, status, message)
+            db.session.add(event)
+            db.session.commit()
     except:
-        userID = "0"
+        user_id = "0"
         ip = "0.0.0.0"
-        event = "Datelog: "+dateLog+" "+" Datetime: "+dateTime+" "+"Threat: "+threat+" "+" IP:"+ip+" "+"UserId: "+userID+" "+"Status: "+status+" "+"Message: "+message
+        event = "Datelog: "+dateLog+" "+" Datetime: "+dateTime+" "+"Threat: "+threat+" "+" IP:"+ip+" "+"UserId: "+user_id+" "+"Status: "+status+" "+"Message: "+message
 
 
 def val_alpha(value):
     """User input validation for checking a-zA-Z"""
     match = re.findall(r"[^\w]|[\d]", str(value))
     if match:
-        log("User supplied not an a-zA-Z", "MEDIUM", "FAIL")
+        log("User supplied not an a-zA-Z ?", "MEDIUM", "FAIL")
         abort(400, "Validation Error")
     else:
         return True
 
 
 def val_alpha_num(value):
-    """User input validation for checking a-z A-Z 0-9 _ . -"""
-    match = re.findall(r"[^\ \w\.-]", value)
+    """User input validation for checking a-z A-Z 0-9 _ . - ?"""
+    match = re.findall(r"[^\ \w\.-\?]", value)
     if match:
-        log("User supplied not an a-z A-Z 0-9 _ . - value", "MEDIUM", "FAIL")
+        log("User supplied not an a-z A-Z 0-9 _ . - ? value", "MEDIUM", "FAIL")
         abort(400, "Validation Error")
     else:
         return True
-
 
 def val_alpha_num_special(value):
     """User input validation for checking a-z A-Z 0-9 _ . - ' , " """
-    match = re.findall(r"[^\ \w_\.\-\'\",\+\(\)\/\:@\?\&\=\%]", value)
+    match = re.findall(r"[^\ \w_\.\-\\|\\'\",\+\(\)\/\:@\?\&\=\%\!\#\^\;]", str(value))
     if match:
-        log("User supplied not an a-z A-Z 0-9 _ . - +' \" , value", "MEDIUM", "FAIL")
-        abort(400, "Validation Error")
+        log("User supplied not an a-z A-Z 0-9 _ . , - / ! # ^ & +' \" value", "MEDIUM", "FAIL")
+        abort(400, "Validation Error on val_alpha_num_special")
     else:
         return True
-
-
 
 def val_num(value): 
     """User input validation for checking numeric values only 0-9"""
     if not isinstance( value, int ):
         log("User supplied not an 0-9", "MEDIUM", "FAIL")
-        abort(400, "Validation Error")
+        abort(400, "Validation Error on val_num")
     else:
         return True
 
 
 def val_float(value): 
     """User input validation for checking float values only 0-9 ."""
-    if not isinstance( value, float ):
+    if not isinstance(value, float):
         log("User supplied not a float value.", "MEDIUM", "FAIL")
-        abort(400, "Validation Error")
+        abort(400, "Validation Error on val_float")
     else:
         return True
-
 
 def validate_privilege(self, privilege):
     """Validates the JWT privileges"""
@@ -110,7 +106,7 @@ def validate_privilege(self, privilege):
 
 
 def select_userid_jwt(self):
-    """Returns the userID from the JWT authorization token"""
+    """Returns the user_id from the JWT authorization token"""
     token = request.headers.get('Authorization').split()[0]
     try:
         checkClaims = jwt.decode(token, settings.JWT_SECRET, algorithms='HS256')

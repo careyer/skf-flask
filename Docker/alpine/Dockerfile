@@ -1,48 +1,52 @@
-FROM alpine:3.7
+#############
+### build ###
+#############
 
-# Thanks to Mariano Abdala <marianoabdala@gmail.com>
-MAINTAINER Glenn ten Cate <glenn.ten.cate@owasp.org>
+# base image
+FROM python:3.7 as BUILDER
 
-RUN apk add alpine-sdk
-RUN apk update --no-cache && apk add python3 \
-gcc \
-nginx \
-sqlite \
-nodejs \
-nodejs-npm \
-musl-dev \
-python3-dev \
-libffi-dev \
-py3-pip \
-openssl \
-bash \
-perl \
-openblas-dev \
-libstdc++ \ 
-openblas \
-git
-RUN ln -s /usr/include/locale.h /usr/include/xlocale.h
-RUN git clone https://github.com/blabla1337/skf-flask.git
-# Start Angular app
-WORKDIR /skf-flask/Angular
-RUN npm install -g @angular/cli
-RUN npm install
-# Optimize vendor.bundle.js
-RUN npm build -prod -aot ./
+LABEL maintainer="glenn.ten.cate@owasp.org"
+
+RUN apt update &&\
+    apt install -y apt-utils python3-nltk \
+    default-libmysqlclient-dev 
+
+############
+### prod ###
+############
+
+# base image
+FROM python:3.7
+
+LABEL maintainer="glenn.ten.cate@owasp.org"
+
+RUN groupadd --gid 1000 user_skf && useradd --uid 1000 --gid user_skf -m user_skf &&  mkdir -p /home/user_skf
+
+ADD ./ /home/user_skf/
+RUN chmod a+rw /home/user_skf/skf/db /home/user_skf/skf/db/*
+COPY ./Docker/alpine/entrypoint.sh  /entrypoint.sh
+COPY ./Docker/alpine/skf-api.sh  /skf-api.sh
+COPY ./Docker/alpine/wrapper.sh  /wrapper.sh
+
+WORKDIR /home/user_skf/
+
+RUN pip3 install --upgrade pip &&\
+    pip3 install --user nltk &&\
+    pip3 install --user  -r requirements.txt
+
+RUN apt update &&\
+    apt install -y nodejs \
+    nginx \
+    npm \
+    openssl
+
+WORKDIR /home/user_skf/Angular
+RUN perl -pi -e "s/http:\/\/127.0.0.1:8888\/api/https:\/\/localhost\/api/" /home/user_skf/Angular/src/environments/environment.ts
+
+RUN npm --loglevel=error install &&\
+    npm run build --prod
 
 EXPOSE 443 80
 
-# Start python API app
-WORKDIR /skf-flask
-RUN pip3 install -r requirements.txt
-VOLUME [ "/skf-flask" ]
-#USER nobody
-COPY entrypoint.sh /
-COPY wrapper.sh /
-COPY skf-api.sh /
-COPY skf-angular.sh /
-RUN ["chmod", "+x", "/entrypoint.sh"]
-RUN ["chmod", "+x", "/wrapper.sh"]
-RUN ["chmod", "+x", "/skf-api.sh"]
-RUN ["chmod", "+x", "/skf-angular.sh"]
+WORKDIR /home/user_skf
 ENTRYPOINT ["/entrypoint.sh"]
